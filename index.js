@@ -18,7 +18,7 @@ const uploadMiddlerware = multer({
     dest: 'uploads/',
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/'))  {
+        if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
             cb(new Error('Invalid file type, only images are allowed.'));
@@ -31,7 +31,7 @@ dotenv.config()
 const mongo_URI = process.env.MONGO_URI;
 const origin = process.env.REQ_ORIGIN;
 
-app.use(cors({ credentials: true, origin: origin}));
+app.use(cors({ credentials: true, origin: origin }));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
@@ -88,7 +88,11 @@ app.post('/login', async (req, res) => {
     if (passOk) {
         jwt.sign({ username, id: userDoc.id, isAdmin: userDoc.isAdmin }, secret, {}, (err, token) => {
             if (err) throw err;
-            res.cookie('token', token).json({
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+            }).json({
                 id: userDoc._id,
                 username,
                 isAdmin: userDoc.isAdmin
@@ -102,7 +106,7 @@ app.post('/login', async (req, res) => {
 // Get profile
 app.get('/profile', (req, res) => {
     const { token } = req.cookies;
-    
+
     if (!token) {
         return res.status(401).json({ message: 'No token provided, authentication required.' });
     }
@@ -178,8 +182,8 @@ app.put('/create', uploadMiddlerware.single('file'), async (req, res) => {
         const user = await User.findById(info.id);
 
         // Check if user is author OR admin
-        const isAuthorOrAdmin = 
-            JSON.stringify(blogDoc.author) === JSON.stringify(info.id) || 
+        const isAuthorOrAdmin =
+            JSON.stringify(blogDoc.author) === JSON.stringify(info.id) ||
             user.isAdmin;
 
         if (!isAuthorOrAdmin) {
