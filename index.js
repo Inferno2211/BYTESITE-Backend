@@ -156,6 +156,9 @@ app.post("/create", uploadMiddlerware.single("file"), async (req, res) => {
     });
     const coverUrl = coverUploadResult.secure_url;
 
+    // Delete file from uploads folder
+    fs.unlinkSync(path);
+
     // Replace local image paths in content with Cloudinary URLs
     const updatedContent = await replaceLocalImagesWithCloudinary(content);
 
@@ -198,6 +201,9 @@ app.put("/create", uploadMiddlerware.single("file"), async (req, res) => {
       folder: "blog_covers",
     });
     newCoverUrl = coverUploadResult.secure_url;
+
+    // Delete file from uploads folder
+    fs.unlinkSync(path);
   }
 
   const { token } = req.cookies;
